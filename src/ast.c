@@ -5,6 +5,8 @@
 #include "parser.h"
 #include "type_annotate.h"
 
+//gonna add llvm functionality up in here
+
 GNode * ast_node_new(int kind, void * lexeme){//does primitive type annotating for i32 and bool types
 	struct ast * ast = (struct ast *)malloc(sizeof(struct ast));
 	
