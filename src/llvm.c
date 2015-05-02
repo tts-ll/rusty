@@ -89,6 +89,15 @@ char* llvm_exp(GNode *exp){
 		case OR_EXP:
 			str = llvm_binary_op( exp );
 			break;
+		
+		case EQ_EXP:
+		case NE_EXP:	
+		case LT_EXP:
+		case GT_EXP:
+		case LE_EXP:
+		case GE_EXP:
+			str = llvm_comparison( exp );
+			break;
 
 		case ID:
 			str = llvm_id( exp );	
@@ -188,7 +197,75 @@ char* llvm_binary_op(GNode *op){
 	
 }
 
+char* llvm_comparison(GNode* cmp){
 
+	int cmp_kind = get_ast(cmp)->kind;
+
+	char cmp_string[500];
+
+	GNode *left = cmp->children;
+	GNode *right = cmp->children->next;
+	
+	char* var = (char *)malloc(21 * sizeof(char) );
+	
+	//Get return strings for further down expressions
+	char *str_left  = llvm_exp(left);
+	char *str_right = llvm_exp(right);
+	
+
+	//Append llvm return variable to op_string
+	var[0] = '%';
+	itoa( var_count , ( var + 1 ) , 10 );	
+	strcpy( cmp_string , var );
+	
+	var_count++;
+
+	
+	switch(cmp_kind){
+
+		case EQ_EXP:
+			strcat( cmp_string , " = icmp eq i32 " );
+			break;
+
+		case NE_EXP:
+			strcat( cmp_string , " = icmp ne i32 " );
+			break;
+	
+		case LT_EXP:
+			strcat( cmp_string , " = icmp slt i32 " );
+			break;
+
+		case GT_EXP:
+			strcat( cmp_string , " = icmp sgt i32 " );
+			break;
+
+		case LE_EXP:
+			strcat( cmp_string , " = icmp sle i32 " );
+			break;
+
+		case GE_EXP:
+			strcat( cmp_string , " = icmp sge i32 " );
+			break;
+
+		default:
+			break;
+
+	}
+	
+	//Append operands
+	strcat(cmp_string , str_left);
+	strcat(cmp_string , " , ");
+	strcat(cmp_string , str_right);
+	strcat(cmp_string , " ;\n");
+
+	printf("%s", cmp_string);
+
+	free(str_left);
+	free(str_right);
+
+	return var;
+
+}
 
 char* llvm_id(GNode *id_node){
 	
