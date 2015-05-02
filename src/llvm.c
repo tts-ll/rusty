@@ -19,14 +19,17 @@
 
 
 static int var_count = 1;
+static int loop_count = 1;
 
+//Just for Testing
+//Gets us to a function's block so that we can test
 void test_llvm(GNode* crate){
 
 	
 
 	GNode *item = crate->children->children;
 	GNode *block;
-	GNode *stmts;
+	
 	char* str;
 
 	//Find the function definition
@@ -54,24 +57,45 @@ void test_llvm(GNode* crate){
 		block = block->next;
 	}
 	
-	stmts = block->children;
+	str = llvm_block( block );	
 	
-	#ifdef LLVM_DBG_ON			
-	printf("test_llvm: FOUND_BLOCK\n");
-	#endif
-
-	while(stmts){
-	
-		
-		str = llvm_exp( stmts->children );
-
-		if(str)
-			free(str);	
-		stmts = stmts->next;
-	}
 
 	
 }
+
+char* llvm_block(GNode* block){
+
+	GNode* stmt = block->children;
+	char* str = NULL;	
+
+	while(stmt){
+
+		switch( get_ast(stmt)->kind ){
+	
+			case STMT:
+				str = llvm_exp(stmt->children);
+				break;
+			case RETURNEXP_STMT:
+			case RETURN_STMT:
+			case LET_STMT:
+			case LETTYPEASS_STMT:
+			case LETASS_STMT:
+			case LETTYPE_STMT:
+				str = NULL;
+				break;
+			default:
+				str = llvm_exp(stmt);
+				break;
+		}
+		
+		stmt = stmt->next;
+
+	}
+		
+	return str;
+}
+
+
 
 char* llvm_exp(GNode *exp){
 
@@ -97,6 +121,13 @@ char* llvm_exp(GNode *exp){
 		case LE_EXP:
 		case GE_EXP:
 			str = llvm_comparison( exp );
+			break;
+
+		case LOOP_EXP:
+			#ifdef LLVM_DBG_ON
+				printf("llvm_exp: AT LOOP\n");	
+			#endif
+			str = llvm_loop( exp );
 			break;
 
 		case ID:
@@ -197,10 +228,31 @@ char* llvm_binary_op(GNode *op){
 	
 }
 
+
+char* llvm_loop(GNode* loop){
+
+
+
+	char* str;		
+	int cnt_t = loop_count;
+	
+	printf("\nloop%d:\n\n", loop_count++ );
+	
+	str = llvm_block( loop->children  );	
+
+	printf("\nbr label %%loop%d \n", cnt_t );	
+	
+		
+	return str;
+
+}
+
+
 char* llvm_comparison(GNode* cmp){
 
 	int cmp_kind = get_ast(cmp)->kind;
-
+		
+	
 	char cmp_string[500];
 
 	GNode *left = cmp->children;
