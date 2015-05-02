@@ -117,7 +117,8 @@ program: crate {
 		struct env *global;
 		global = survey_defs($$);
 		type_annotate($$, global);
-		node_print($1);
+		//node_print($1);
+		test_llvm($$);
 		return 0;		 
 		} 
 crate:	 items {

@@ -1,6 +1,6 @@
-PROGRAM = type_rust
-CFILES = frontend.c ast.c env.c type_annotate.c
-HEADERS = parser.h lexer.h ast.h env.h type_annotate.h
+PROGRAM = llvm_rust
+CFILES = frontend.c ast.c env.c type_annotate.c llvm.c
+HEADERS = parser.h lexer.h ast.h env.h type_annotate.h llvm.h
 YFILE = parser.y
 LFILE = lexer.l
 
