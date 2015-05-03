@@ -142,6 +142,8 @@
 "isize" 		{ return ISIZE; }
 "char" 			{ return CHAR; }	  
 "str"			{ return STR;}
+"prints"		{ return PRINTS; }
+"printi"		{ return PRINTI; }
 
 "true"			{return TRU;}
 "false"			{return FALS;}

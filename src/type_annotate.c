@@ -141,6 +141,12 @@ struct type * type_annotate_block(GNode * block, struct env * global, GHashTable
 			case LETTYPE_STMT:
 				type_result = type_annotate_let_type(child, global, local);
 				break;
+			case PRINTI_STMT:
+				type_result = type_annotate_printi(child, global, local);
+				break;
+			case PRINTS_STMT:
+				type_result = type_annotate_prints(child, global, local);
+				break;
 			case STMT:
 
 				type_result = type_annotate_exp_stmt(child->children, global, local, ret_type);
@@ -293,6 +299,40 @@ struct type * type_annotate_exp_stmt(GNode * exp_stmt, struct env * global, GHas
 	return type_result;
 
 }
+
+struct type * type_annotate_printi(GNode * printi, struct env * global, GHashTable * local){
+	struct type * type_result = get_type(printi);
+	GNode * exp = printi->children->children;
+
+	if(!exp){
+
+		get_type(printi)->kind = TYPE_ERROR;//error if no arguments
+	}
+	else if(exp->next){
+
+		get_type(printi)->kind = TYPE_ERROR;//error if too many arguments
+	}
+	else {
+		type_result = type_annotate_exp_stmt(exp, global, local, NULL);
+		if(strip_mut(type_result)->kind != TYPE_I32){
+
+			get_type(printi)->kind = TYPE_ERROR;//has to be i32 for printing
+		}
+		else{
+			get_type(printi)->kind = TYPE_UNIT;
+		}
+	}
+
+	return get_type(printi);
+}
+
+struct type * type_annotate_prints(GNode * prints, struct env * global, GHashTable * local){
+	struct type * type_result = get_type(prints);
+	type_result = NULL;
+	return mark_type(prints, type_result);
+}
+
+
 
 struct type * type_annotate_comp_assignment(GNode * opnode, struct env * global, GHashTable * local){
 

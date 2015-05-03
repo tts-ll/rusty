@@ -83,6 +83,10 @@ struct type * type_annotate_let_type(GNode *, struct env *, GHashTable *);
 
 struct type * type_annotate_let_type_assign(GNode *, struct env *, GHashTable *);
 
+struct type * type_annotate_printi(GNode *, struct env *, GHashTable *);
+
+struct type * type_annotate_prints(GNode *, struct env *, GHashTable *);
+
 struct type * type_annotate_comp_assignment(GNode *, struct env *, GHashTable *);
 
 struct type * type_annotate_assignment(GNode *, struct env *, GHashTable *);

@@ -20,6 +20,7 @@
 
 static int var_count = 1;
 static int loop_count = 1;
+static int need_puts = 0;
 
 //Just for Testing
 //Gets us to a function's block so that we can test
@@ -35,8 +36,6 @@ void test_llvm(GNode* crate){
 	//Find the function definition
 	while(item){
 
-	
-		
 		if(get_ast(item)->kind == FNDEF_ITEM)
 			break;
 		
@@ -63,7 +62,64 @@ void test_llvm(GNode* crate){
 	
 }
 
-char* llvm_block(GNode* block){
+char* llvm_crate(GNode * crate){
+
+	GNode *item = crate->children->children;
+	char* str;
+
+	while(item){
+		switch(get_ast(item)->kind){
+			case FNDEF_ITEM:
+				if(!strcmp(get_item_id(item),"main")){
+					str = llvm_maindef(item);				
+				}
+				else{
+					str = llvm_fndef(item);
+				}
+				break;
+			case STRUCTDEF_ITEM:
+				break;
+			default:
+				printf("Unsupported item in rust-like source.  Perhaps enum?\n");
+				exit(-1);
+		}
+
+		item = item->next;
+	}
+
+	if(need_puts){
+		printf("declare i32 @puts(i8*)\n");
+	}
+	
+
+	return str;
+}
+
+char * llvm_maindef(GNode * maindef){
+	
+	GNode * block = g_node_last_child(maindef);
+	
+	char * name = "@main()";
+	char * str;
+		
+	printf("define void %s {\n\n", name);
+	
+	str = llvm_block(block);
+
+	printf("\nret void\n");
+	printf("}\n");
+	
+	return str;
+}
+
+char * llvm_fndef(GNode * fndef){
+	char * str;
+	str = NULL;
+	return str;
+
+}
+
+char * llvm_block(GNode* block){
 
 	GNode* stmt = block->children;
 	char* str = NULL;	
@@ -83,6 +139,12 @@ char* llvm_block(GNode* block){
 			case LETTYPE_STMT:
 				str = NULL;
 				break;
+			case PRINTI_STMT:
+				str = llvm_printi(stmt->children->children);
+				break;
+			case PRINTS_STMT:
+				str = llvm_prints(stmt->children->children);
+				break;
 			default:
 				str = llvm_exp(stmt);
 				break;
@@ -95,7 +157,38 @@ char* llvm_block(GNode* block){
 	return str;
 }
 
+char * llvm_printi(GNode * exp){
+	need_puts = 1;// will cause a declaration of puts for external linking
+	char* str = llvm_exp(exp);
+	/*
+	char* call_string;
+	printf("%%c = alloca i8\n");
+	printf("store i8 %s, i8* %%c\n", str);
+	call_string = " = call i32 @puts(i8* %%c) ";	
+	
+	str = llvm_exp(exp);
+	*/
+	printf("\n;printi not yet implemented!!\n");
+	str = NULL;//debugging
+	return str;
+}
 
+char * llvm_prints(GNode * exp){
+	need_puts = 1;// will cause a declaration of puts for external linking
+
+	char* str = llvm_exp(exp);
+	/*
+	char* call_string;
+	printf("%%c = alloca i8\n");
+	printf("store i8 %s, i8* %%c\n", str);
+	call_string = " = call i32 @puts(i8* %%c) ";	
+	str = llvm_exp(exp);
+	*/
+	printf("\n;prints not yet implemented!!\n");
+	str = NULL;//debugging
+	return str;
+	
+}
 
 char* llvm_exp(GNode *exp){
 
@@ -222,20 +315,17 @@ char* llvm_binary_op(GNode *op){
 	free(str_left);
 	free(str_right);
 
-	
-
 	return var;
 	
 }
 
 
 char* llvm_loop(GNode* loop){
-
-
-
-	char* str;		
+	char* str;	
 	int cnt_t = loop_count;
-	
+
+	printf("\nbr label %%loop%d \n", cnt_t);
+
 	printf("\nloop%d:\n\n", loop_count++ );
 	
 	str = llvm_block( loop->children  );	

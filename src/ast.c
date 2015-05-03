@@ -542,13 +542,20 @@ void node_print(GNode *node) {
 			printf("let:");
 			type_print(my_ast->type);
 			break;	
-
 		  case RETURN_STMT:
 			printf("return:");
 			type_print(my_ast->type);
 			break;
 		  case RETURNEXP_STMT:
 			printf("return:");
+			type_print(my_ast->type);
+			break;
+		  case PRINTI_STMT:
+			printf("printi:");
+			type_print(my_ast->type);
+			break;
+		  case PRINTS_STMT:
+			printf("prints:");
 			type_print(my_ast->type);
 			break;
                   case BLOCK:

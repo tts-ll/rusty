@@ -4,6 +4,7 @@
 	#include <glib.h>
 	#include "env.h"
 	#include "type_annotate.h"
+	#include "llvm.h"
 
 	void yyerror(char const* msg);
 	int yylex(void);
@@ -62,6 +63,8 @@
           TRAIT TYPE TYPEOF UNKNOWN UNSAFE UNSIZED
           USE VIRTUAL WHERE WHILE YIELD
 
+          PRINTS PRINTI
+
           UNIT BOOL U8 U16 U32 U64 I8 I16
           I32 I64 F32 F64 USIZE ISIZE CHAR
           STR UNDERSCORE
@@ -112,13 +115,12 @@
 
 %%
 program: crate { 
-
 		$$ = $1;
 		struct env *global;
 		global = survey_defs($$);
 		type_annotate($$, global);
 		//node_print($1);
-		test_llvm($$);
+		llvm_crate($$);
 		return 0;		 
 		} 
 crate:	 items {
@@ -343,6 +345,19 @@ stmt:    	exp SEMICOLON {
 |	 	let SEMICOLON {
 			$$ = $1;			
 			}
+
+|		PRINTI LPAREN exps RPAREN SEMICOLON {
+			GNode * p = ast_node_new(PRINTI_STMT, NULL);
+			g_node_prepend(p, $3);
+			$$ = p;
+			}
+|		PRINTS LPAREN exps RPAREN SEMICOLON {
+			GNode * p = ast_node_new(PRINTS_STMT, NULL);
+			g_node_prepend(p, $3);
+			$$ = p;
+			}
+
+
 //| 		exp 		{ $$ = $1; }	 
 let:		LET pat {
 			GNode * p = ast_node_new(LET_STMT, NULL);
@@ -368,7 +383,6 @@ let:		LET pat {
 			g_node_prepend(p, $2);
 			$$ = p;	
 			}
-
 
 		/*===EXPRESSIONS===*/
 exp : 	 	literal 			{$$ = $1;}
@@ -397,7 +411,7 @@ exp : 	 	literal 			{$$ = $1;}
 |		assign				{$$ = $1;}
 
 			/*MISC : NT's*/
-|		fn-call /*%prec FNCALLEXP*/	{$$ = $1;}
+|		fn-call 			{$$ = $1;}
 |		if				{$$ = $1;}
 |		while				{$$ = $1;}
 |		loop				{$$ = $1;}		
