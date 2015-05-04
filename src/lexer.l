@@ -148,7 +148,20 @@
 "true"			{return TRU;}
 "false"			{return FALS;}
 
-[b][\"]((([ -~]{-}[\\\"]))|((\\)(\\|\")))*[\"] {return LITSTR;}
+[b][\"]((([ -~]{-}[\\\"]))|((\\)(\\|\")))*[\"] {
+				
+					
+				int len = strlen(yytext);
+				yylval.str = (char*)malloc((len-2)*sizeof(char));
+				int i = 2;				
+				while(i < len-1){
+					yylval.str[i-2] = yytext[i];
+					i++;
+				}
+				yylval.str[i-2] = '\0';						
+				return LITSTR;
+				
+			  }
 
 [_a-zA-Z]+[_a-zA-Z0-9]*	  {
 				int len = strlen(yytext);  
@@ -157,7 +170,10 @@
 				return ID; 
 			  }
 
-[b][\'](([\x00-\xFF]{-}[\\\'])|((\\)(\\|\')))[\']				{ return LITCHAR; }
+[b][\'](([\x00-\xFF]{-}[\\\'])|((\\)(\\|\')))[\'] { 				
+				yylval.c = yytext[2];
+				return LITCHAR; 
+			 }
 
 
 [\/][\/][ -~]*          { }
@@ -171,6 +187,7 @@
 				yylval.line_number++;			
 		}
 	     }
+
 .            { return UNKNOWN; }
 
 %%

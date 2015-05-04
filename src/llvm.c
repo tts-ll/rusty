@@ -21,6 +21,7 @@
 static int var_count = 1;
 static int loop_count = 1;
 static int need_puts = 0;
+static int const_count = 0;
 
 //Just for Testing
 //Gets us to a function's block so that we can test
@@ -67,6 +68,8 @@ char* llvm_crate(GNode * crate){
 	GNode *item = crate->children->children;
 	char* str;
 
+	llvm_constants(crate);
+
 	while(item){
 		switch(get_ast(item)->kind){
 			case FNDEF_ITEM:
@@ -93,6 +96,30 @@ char* llvm_crate(GNode * crate){
 	
 
 	return str;
+}
+
+void llvm_constants(GNode * node){
+	int len;
+	switch(get_ast(node)->kind){
+/*parser.y*/  	  case LITCHAR:
+			const_count++;
+			get_type(node)->length = const_count;
+			printf("@c%d = constant [2 x i8] c\"%c\\00\"\n", const_count, get_ast(node)->c);
+			break;
+/*parser.y*/  	  case LITSTR:
+			len = strlen(get_ast(node)->str) + 1;//1 to include null terminator
+			const_count++;
+			get_type(node)->length = const_count;
+			printf("@c%d = constant [%d x i8] c\"%s\\00\"\n", const_count, len, get_ast(node)->str);
+			break;
+	}
+	GNode* child = node->children;	    
+	while(child){
+		llvm_constants(child);
+		child = child->next;
+	}
+
+
 }
 
 char * llvm_maindef(GNode * maindef){
@@ -158,35 +185,52 @@ char * llvm_block(GNode* block){
 }
 
 char * llvm_printi(GNode * exp){
+/*
 	need_puts = 1;// will cause a declaration of puts for external linking
 	char* str = llvm_exp(exp);
-	/*
-	char* call_string;
-	printf("%%c = alloca i8\n");
-	printf("store i8 %s, i8* %%c\n", str);
-	call_string = " = call i32 @puts(i8* %%c) ";	
 	
-	str = llvm_exp(exp);
-	*/
-	printf("\n;printi not yet implemented!!\n");
-	str = NULL;//debugging
-	return str;
+	char op_string[500];
+	char* var = (char *)malloc(21 * sizeof(char) );
+	
+	//Append llvm return variable to op_string
+	var[0] = '%';
+	itoa( const_count , ( var + 1 ) , 10 );	
+	strcpy( op_string , var );
+	const_count++;
+
+	char call_string[100];
+
+	sprintf(call_string, "%%2 = call i32 @puts(i8* %s)\n", str);
+
+	strcat(op_string, call_string);
+	printf("%s", op_string);
+ */
+	printf("Printi not yet implemented!\n");
+
+	return NULL;
 }
 
 char * llvm_prints(GNode * exp){
 	need_puts = 1;// will cause a declaration of puts for external linking
 
-	char* str = llvm_exp(exp);
-	/*
-	char* call_string;
-	printf("%%c = alloca i8\n");
-	printf("store i8 %s, i8* %%c\n", str);
-	call_string = " = call i32 @puts(i8* %%c) ";	
-	str = llvm_exp(exp);
-	*/
-	printf("\n;prints not yet implemented!!\n");
-	str = NULL;//debugging
-	return str;
+	char reg_string[500];
+	char* var = (char *)malloc(21 * sizeof(char) );
+	
+	//Append llvm return variable to op_string
+	var[0] = '%';
+	itoa( var_count , ( var + 1 ) , 10 );	
+	strcpy( reg_string , var );
+	var_count++;
+
+	char call_string[100];
+
+	sprintf(call_string, " = call i32 @puts(i8* getelementptr inbounds ([%d x i8]* @c%d, i32 0, i32 0))", 
+				strlen(get_ast(exp)->str) +1, get_type(exp)->length);
+
+	strcat(reg_string, call_string);
+	printf("%s", reg_string);
+
+	return var;
 	
 }
 

@@ -13,6 +13,7 @@
 
 
 void test_llvm(GNode*);
+void llvm_constants(GNode*);
 char* llvm_crate(GNode*);
 char* llvm_maindef(GNode*);
 char* llvm_fndef(GNode*);

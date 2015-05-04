@@ -825,9 +825,9 @@ literal:		prim-lit			{$$ = $1;}
 |			comp-lit			{$$ = $1;}
 
 prim-lit: 		lit-bool			{$$ = $1;}
-|			LITCHAR				{$$ = ast_node_new(LITCHAR, NULL);}
+|			LITCHAR				{$$ = ast_node_new(LITCHAR, &($1));}
 |			LITDEC				{$$ = ast_node_new(LITDEC, &($1));}
-|			LITSTR				{$$ = ast_node_new(LITSTR, NULL);}
+|			LITSTR				{$$ = ast_node_new(LITSTR, (void*)$1);}
 
 //unit-lit:		LPAREN RPAREN			{$$ = ast_node_new(LIT_UNIT, NULL);}
 

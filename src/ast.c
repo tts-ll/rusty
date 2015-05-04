@@ -7,6 +7,7 @@
 
 //gonna add llvm functionality up in here
 
+
 GNode * ast_node_new(int kind, void * lexeme){//does primitive type annotating for i32 and bool types
 	struct ast * ast = (struct ast *)malloc(sizeof(struct ast));
 	
@@ -62,7 +63,7 @@ GNode * ast_node_new(int kind, void * lexeme){//does primitive type annotating f
 
 		//literals
 		case LITSTR:
-			ast->str = (char *)lexeme;
+			ast->str = deepcopy( (char*)lexeme );
 			ast->type->kind = TYPE_REF;
 			ast->type->type = (struct type *) malloc(sizeof(struct type));
 			ast->type->type->kind = TYPE_SLICE;
@@ -79,7 +80,7 @@ GNode * ast_node_new(int kind, void * lexeme){//does primitive type annotating f
 			ast->type->kind = TYPE_BOOL;
 			break;
 	 	case LITCHAR: 
-			ast->c = ((char)lexeme);
+			ast->c = *((char *)lexeme);
 			ast->type->kind = TYPE_U8;
 			break;
 		case UNIT_EXP:

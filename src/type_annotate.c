@@ -209,10 +209,9 @@ struct type * type_annotate_exp_stmt(GNode * exp_stmt, struct env * global, GHas
 				break;
 			case LITDEC:
 				type_result = mark_type(exp_stmt, data->type); // mark_type(exp_stmt, data->type);
-
 				break;
 			case LITSTR:
-				type_result = mark_type(exp_stmt, data->type);
+				type_result = get_type(exp_stmt);
 				break;
 			//complex literals
 			case ENUM_LIT:
@@ -328,8 +327,27 @@ struct type * type_annotate_printi(GNode * printi, struct env * global, GHashTab
 
 struct type * type_annotate_prints(GNode * prints, struct env * global, GHashTable * local){
 	struct type * type_result = get_type(prints);
-	type_result = NULL;
-	return mark_type(prints, type_result);
+	GNode * exp = prints->children->children;
+
+	if(!exp){
+
+		get_type(prints)->kind = TYPE_ERROR;//error if no arguments
+	}
+	else if(exp->next){
+
+		get_type(prints)->kind = TYPE_ERROR;//error if too many arguments
+	}
+	else {
+		type_result = type_annotate_exp_stmt(exp, global, local, NULL);
+		if(strip_mut(type_result)->kind != TYPE_REF){
+
+			get_type(prints)->kind = TYPE_ERROR;//has to be i32 for printing
+		}
+		else{
+			get_type(prints)->kind = TYPE_UNIT;
+		}
+	}
+	return get_type(prints);
 }
 
 
@@ -1491,9 +1509,9 @@ GNode* get_fncall_params(GNode* fncall){
 
 char * deepcopy(char* old){
 
-	if(!old)
+	if(!old){
 		return NULL;	
-		
+		}
 	char* new = (char*)malloc(  sizeof(char) * (strlen(old)+1) );
 
 	return strcpy(new, old);
