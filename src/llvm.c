@@ -18,8 +18,70 @@
 
 
 
-static int var_count = 1;
-static int loop_count = 1;
+static int var_count = 1;	//Used for temporary variables, not rust declared variables
+static int loop_count = 1;	//Will use for while and loop
+static int cmp_count = 1;
+static int ifelse_count = 1;
+static GHashTable* count_table;
+
+
+llvm_var* llvm_new( char* id , char* reg , char* label , struct type* type){
+	
+	llvm_var* new = malloc( sizeof(llvm_var) );	
+	
+
+	if(id){
+		
+		int id_len = strlen( id );
+		new->id = malloc( sizeof( char ) * (id_len+1) );
+		strcpy( new->id , id );	
+
+	}
+
+
+	if(reg){
+		
+		int reg_len = strlen( reg );
+		new->reg = malloc( sizeof( char ) * (reg_len+1) );
+		strcpy( new->reg , reg );	
+
+
+	}
+
+
+	if(label){
+
+		int label_len = strlen( label );
+		new->label = malloc( sizeof( char ) * (label_len+1) );
+		strcpy( new->label , label );	
+
+	}
+
+	new->type = type;//Shallow copy of type
+
+	return new;
+	
+}
+
+
+void llvm_free( llvm_var* var){
+
+
+	if(var->label)
+		free(label);
+	
+
+	if(var->reg)
+		free(reg);
+	
+
+	if(var->id)
+		free(id);
+
+	
+}
+
+
 
 //Just for Testing
 //Gets us to a function's block so that we can test
@@ -147,6 +209,104 @@ char* llvm_exp(GNode *exp){
 
 
 }
+
+
+llvm_var* llvm_left_exp(GNode* lexp){
+
+	int kind = get_ast(lexp)->kind;
+
+
+	switch(kind){
+		
+		case ID:
+			llvm_id(lexp);
+		case ARRIDX_EXP:
+		case FIELDLUP_EXP:
+		case DEREF_EXP:
+		default:
+		break;
+
+ 
+
+
+	}
+
+}
+
+//IMPORTANT:
+//	When an array is made defined, we keep an array pointer.  
+//	e.g. If ID is 'X' then the pointer is 'X_ptr'
+//	This allows for getelementptr for l-exp and loading for r-exp.
+
+llvm_var* llvm_left_arridx(GNode* arr_idx){
+
+	GNode* idx = arr_idx->children->next;
+	GNode* arr = arr_idx->children;
+	
+	
+	llvm_var* arr_var = llvm_left_exp( arr );	
+	llvm_var* idx_var = llvm_exp( idx );
+		
+	char* arr_reg = arr_var->reg; 
+	char* idx_reg = idx_var->reg;
+     
+	char* new_reg = malloc( 33 * sizeof(char) );
+	
+	new_reg[0] = '%';
+    itoa(var_count++ , &new_reg[1] , 10);		
+	 	
+	
+	//Print new instruction	
+	printf( "%s = getelementptr " , new_reg ); 
+	llvm_print_type( get_ast(arr_idx)->type ); 	
+	printf( "* , ");	
+	llvm_print_type( get_ast(arr_idx)->type );
+	printf("i32 0 , i32 %s", idx_reg);
+
+
+
+	llvm_var* ret = llvm_new(arr_var->id , NULL   , NULL , get_ast(arr_idx)->type );	
+	ret->reg = new_reg;
+	
+	return ret;
+
+}
+
+
+
+
+//Unfinished, must complete left expressions first
+llvm_var* llvm_assign( GNode* ass){
+
+	int kind = get_ast(ass)->kind;
+
+	switch(kind){
+
+		case ASSIGNMENT:
+					
+	
+
+		case PLUS_ASSIGN:
+
+		case SUB_ASSIGN:
+
+		case MUL_ASSIGN:
+
+		case DIV_ASSIGN:
+
+		case REM_ASSIGN:
+		break;
+		default:
+			#ifdef LLVM_DBG_ON
+				printf("llvm_assign: Kind not recognized.\n");
+			#endif
+			break;
+
+	}
+
+
+
+} 
 
 
 
@@ -353,12 +513,15 @@ char* itoa(int val, char* usr_buff , int base){
 	static char buf[32] = {0};
 	
 	int i = 30;
-	
+	buff[31] = '\0';
+	buff[32]
 	for(; val && i ; --i, val /= base)
 	
 		buf[i] = "0123456789abcdef"[val % base];
 	
 	strcpy( usr_buff ,  &buf[i+1] );
+		
+
 	return usr_buff;
 	
 }
