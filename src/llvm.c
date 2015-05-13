@@ -214,22 +214,30 @@ char* llvm_exp(GNode *exp){
 llvm_var* llvm_left_exp(GNode* lexp){
 
 	int kind = get_ast(lexp)->kind;
-
+	llvm_var* var = NULL;
 
 	switch(kind){
 		
 		case ID:
-			llvm_id(lexp);
+			var = llvm_id(lexp);
+			break;
 		case ARRIDX_EXP:
+			var = llvm_left_arridx(lexp);
+			break;
 		case FIELDLUP_EXP:
+			var = llvm_left_flup(lexp);
+			break
 		case DEREF_EXP:
+			var = llvm_left_deref(lexp);
+			break;
 		default:
+			#ifdef LLVM_DBG_ON
+				printf("llvm_left_exp: Not a recognizable kind\n");
+			#endif
 		break;
-
- 
-
-
 	}
+
+	return var;	
 
 }
 
@@ -253,49 +261,170 @@ llvm_var* llvm_left_arridx(GNode* arr_idx){
 	char* new_reg = malloc( 33 * sizeof(char) );
 	
 	new_reg[0] = '%';
-    itoa(var_count++ , &new_reg[1] , 10);		
+    	itoa(var_count++ , &new_reg[1] , 10);		
 	 	
 	
 	//Print new instruction	
 	printf( "%s = getelementptr " , new_reg ); 
-	llvm_print_type( get_ast(arr_idx)->type ); 	
-	printf( "* , ");	
-	llvm_print_type( get_ast(arr_idx)->type );
-	printf("i32 0 , i32 %s", idx_reg);
+	llvm_print_type(  arr_var->type ); 	
+	printf( "* , i32 0 , i32 %s\n", idx_reg);
+	
+		
+	
+	llvm_free( arr_var );
+	llvm_free(idx_var);
 
-
-
-	llvm_var* ret = llvm_new(arr_var->id , NULL   , NULL , get_ast(arr_idx)->type );	
+	llvm_var* ret = llvm_new(arr_var->id , NULL   , NULL , get_type( arr_idx ) );	
 	ret->reg = new_reg;
 	
+
 	return ret;
 
 }
 
+llvm_var* llvm_left_deref( GNode* deref ){
 
+	//Printing will occur during assignment
+	//	Print will be a "store" into this returned variable	
+	//llvm_exp is called over exp since any expression can return a pointer
+	return llvm_exp(deref->children);
+
+
+}
+
+llvm_var* llvm_left_flup( GNode* flup ){
+
+	GNode* left_ch = flup->children;
+	GNode* right_ch = left_ch->next;
+	
+	llvm_var* left_var = llvm_exp(left_ch);	
+	llvm_var* righ_var = llvm_exp(right_ch);	
+	
+	char* left_reg = left_var->reg;	
+
+
+	//Get Offset into the struct for the given field
+	GNode* struct_def = get_type(left_ch)->params->parent->parent;		
+	int offset = get_field_offset( struct_def  ,  right_var->id  );	
+	
+
+	//Create a new SSA register value
+	char* new_reg = malloc( 33 * sizeof(char) );
+	new_reg[0] = '%';
+    	itoa(var_count++ , &new_reg[1] , 10);	
+	
+	
+	//Print new instruction	
+	printf( "%s = getelementptr " , new_reg ); 
+	llvm_print_type( left_var->type ); 	
+	printf( "* , i32 0 , i32 %d\n", offset );
+	
+		
+	llvm_free( left_var );
+	llvm_free( right_var );
+
+	llvm_var* ret = llvm_new(left_var->id , NULL  , NULL , get_type( flup ) );	
+	ret->reg = new_reg;
+	
+
+	return ret;
+	
+}
+
+
+int llvm_field_offset(GNode* struct_def, char* id){
+	
+	int cnt = 0;	
+	
+	if(!id){
+		#ifdef LLVM_DBG_ON
+			printf("llvm_field_offset: id is NULL\n");
+		#endif	
+	}
+	
+	GNode* field = struct_def->children->children;
+	
+	while(field){
+		
+		char* cmp_id = get_ast( field->children  )->str;	
+		
+		if( !strcmp(id , cmp_id ) )	//if fields are equal
+			break;
+		cnt++;
+		field = field->next;	
+	}
+
+	return cnt;
+
+}
 
 
 //Unfinished, must complete left expressions first
 llvm_var* llvm_assign( GNode* ass){
-
+	
+	GNode* left = ass->children;
+	GNode* right = left->next;
+	
+	llvm_var* r_var = NULL;
+	llvm_var* l_var = NULL;
+	
+	int l_type;
 	int kind = get_ast(ass)->kind;
 
 	switch(kind){
 
 		case ASSIGNMENT:
-					
+			l_var = llvm_left_exp(left);
+			r_var = llvm_exp(right);
+			l_type = strip_mut( l_var->type )->kind;			
+						
+
+			if(	get_ast(left)->kind == ID && 
+				( l_type == TYPE_I32 || l_type == TYPE_BOOL ) 
+			  )
+			{
+				
+				//print( %var_count++ = or <r-ty> <r-reg> , 0      )			
+				//				
 	
+			}
+			else{
+			
+						
+			
+			}
+			break;
 
 		case PLUS_ASSIGN:
+			l_var = llvm_left_exp(left);
+			r_var = llvm_exp(right);				
+		
+			break;
 
 		case SUB_ASSIGN:
-
+			l_var = llvm_left_exp(left);
+			r_var = llvm_exp(right);
+			
+			break;
+	
 		case MUL_ASSIGN:
+			l_var = llvm_left_exp(left);
+			r_var = llvm_exp(right);
+			
+			break;
 
 		case DIV_ASSIGN:
+			l_var = llvm_left_exp(left);
+			r_var = llvm_exp(right);
+			
+			break;
 
 		case REM_ASSIGN:
-		break;
+			l_var = llvm_left_exp(left);
+			r_var = llvm_exp(right);
+			
+			break;
+
 		default:
 			#ifdef LLVM_DBG_ON
 				printf("llvm_assign: Kind not recognized.\n");

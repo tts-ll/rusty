@@ -18,7 +18,7 @@ typedef struct llvm_var{
 void 			test_llvm(GNode*);
 llvm_var** 		llvm_block(GNode*);
 
-//Left expressions
+//Left expressions: UNDER CONSTRUCTION
 llvm_var*		llvm_left_exp(GNode*);
 llvm_var*		llvm_left_arridx(GNode*);
 llvm_var*		llvm_left_deref(GNode*);
@@ -34,6 +34,11 @@ llvm_var* 		llvm_id(GNode*);
 llvm_var* 		llvm_litdec(GNode*);
 
 
+//Get the offset of a field within a structure
+int llvm_field_offset( GNode* struct_def , char* field_id);
+
+
+//Print the type of a given llvm variable
 void			llvm_print_type(struct type*);
 
 //Convert an integer into a character

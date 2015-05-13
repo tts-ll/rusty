@@ -26,7 +26,7 @@ struct type{
 	int kind;
 	int length;
 	char * id;
-	GNode * params;
+	GNode * params;	//Pointer to definition's parameters
 	struct type * type;
 };
 
