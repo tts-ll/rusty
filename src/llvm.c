@@ -277,7 +277,6 @@ llvm_var* llvm_let_type_ass(GNode* let){
 	
 	return NULL;
 
-
 }
 
 
@@ -411,7 +410,7 @@ llvm_var* llvm_exp(GNode *exp){
 
 }
 
-
+//For instructions you want basic operations without loading
 llvm_var* llvm_exp_no_load(GNode *exp){
 
 	int exp_kind = get_ast( exp )->kind;
