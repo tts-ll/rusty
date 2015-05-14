@@ -169,9 +169,12 @@ llvm_var* llvm_block(GNode* block){
 				llvm_exp(stmt->children);
 				break;
 			case RETURNEXP_STMT:
+				var = llvm_ret_exp( stmt );
+				break;
 			case RETURN_STMT:
+				var = llvm_ret(stmt);
+				break;
 			case LET_STMT:
-			
 				break;
 			case LETTYPEASS_STMT:
 				llvm_let_type_ass(stmt);	
@@ -194,7 +197,23 @@ llvm_var* llvm_block(GNode* block){
 	return var;
 }
 
+llvm_var* llvm_ret(GNode* ret){
 
+	printf("ret void \n");
+
+	return NULL;
+}
+
+llvm_var* llvm_ret_exp(GNode* ret){
+	
+	llvm_var* var = llvm_exp(ret->children);
+	
+	printf("ret ");
+	llvm_print_type( strip_mut( var->type ) );
+	printf(" %s \n", var->reg );
+
+	return NULL;
+}
 
 llvm_var*	llvm_let_type(GNode* let){
 
@@ -638,6 +657,7 @@ llvm_var* llvm_arridx(GNode* arr_idx){
 
 }
 
+
 llvm_var* llvm_deref( GNode* deref ){
 
 	//Printing will occur during assignment
@@ -659,7 +679,7 @@ llvm_var* llvm_flup( GNode* flup ){
 	GNode* right_ch = left_ch->next;
 	
 	llvm_var* left_var = llvm_exp(left_ch);	
-	llvm_var* right_var = llvm_exp(right_ch);	
+	llvm_var* right_var = llvm_exp_no_load(right_ch);	
 	
 	char* left_reg = left_var->reg;	
 
@@ -1085,6 +1105,7 @@ llvm_var* llvm_loop(GNode* loop){
 
 }
 
+
 llvm_var* llvm_while(GNode* loop){
 	
 	GNode* loop_eval = loop->children;
@@ -1254,73 +1275,108 @@ llvm_var* llvm_id(GNode *id_node){
 llvm_var* llvm_litarr(GNode* arr){
 
 	GNode* elmt = arr->children;
-	
-	char arr_str[5000];
-	llvm_var* var;
+	GNode* save = elmt;
+	struct type* arr_type = strip_mut( get_type(arr)  );	
+
+	char reg[50];
+	llvm_var* var[1000];
 	int i = 0;
 
-	arr_str[0] = '[';
-	arr_str[1] = '\0';
+	
+	
 	
 	while(elmt){
 		
-		var = llvm_exp( elmt );			
+		var[i] = llvm_exp( elmt );			
 	
-		strcat(&arr_str[0] , var->reg);	
-			
 		i++;
 		elmt = elmt->next;
-		if(elmt) strcat(&arr_str[0] , ",");
-			
+				
 	}
-	strcat(&arr_str[0], "]");
-		
-		
 
-	return llvm_new( NULL , &arr_str[0] , NULL , strip_mut( get_type(arr) )  );
+	//Build initial insert variable instruction
+	//%s = insertvalue %struct.id undef , type reg , index
+	printf("%%%d = insertvalue  ", var_count++ );
+	llvm_print_type( arr_type );
+	printf(" undef , ");
+	llvm_print_type( strip_mut( var[0]->type )  );	
+	printf(" %s , 0 \n" , var[0]->reg );
+	
+	elmt = save->next;
+	i = 1;
+	
+	//Build following insert variable instructions for each field
+	while(elmt){
 
+		printf("%%%d = insertvalue  ", var_count );
+		llvm_print_type( arr_type );
+		printf(" %%%d , ", var_count-1);
+		llvm_print_type( strip_mut( var[1]->type )  );	
+		printf(" %s , %d \n" , var[1]->reg , i );
+		var_count++;
+
+		i++;
+		elmt = elmt->next;
+	
+	}
+	
+	reg[0] = '%';
+	itoa(var_count-1 , &reg[1] , 10);
+		
+	return llvm_new(NULL , &reg[0]  , NULL , arr_type );
 }
 
 llvm_var* llvm_litstruct(GNode* litstruct){
 	
 	GNode* field = litstruct->children->next->children;	
 	GNode* exp = NULL;
+	char* id = get_ast(litstruct->children)->str;
+	char reg[50];
 	GNode* save = field;
-	char struct_str[5000];
-	char type_str[500];
+	
 	
 	
 	llvm_var* vars[1000];
 	int i = 0;
-
+	
+	//Obtain SSA register/types for each element
 	while(field){
 		exp = field->children->next;
 		
 		vars[i] = llvm_exp( exp );
+			
 		
 		i++;
 		field = field->next;
 	}
 
-	field = save;
-	i = 0;
 
-	struct_str[0] = '{';
-	struct_str[1] = '\0';
+	//Build initial insert variable instruction
+	//%s = insertvalue %struct.id undef , type reg , index
+	printf("%%%d = insertvalue %%struct.%s undef , ", var_count++ , id );
+	llvm_print_type( strip_mut( vars[0]->type )  );	
+	printf(" %s , 0 \n" , vars[0]->reg );
+	
+	field = save->next;
+	i = 1;
+	
+	//Build following insert variable instructions for each field
 	while(field){
-		
-		strcat(&struct_str[0] , llvm_type_str( strip_mut(vars[i]->type ) , &type_str[0] )   );
-		strcat(&struct_str[0] , " ");
-		strcat( &struct_str[0] , vars[i]->reg );
-		
 
+		printf("%%%d = insertvalue %%struct.%s %%%d , ", var_count , id , var_count-1);
+		var_count++;
+		llvm_print_type( strip_mut( vars[1]->type )  );	
+		printf(" %s , %d \n" , vars[1]->reg , i );
+
+		i++;
 		field = field->next;
-		if(field) strcat(&struct_str[0] , " , ");
+	
 	}
 	
-	strcat(&struct_str[0] , "}" );
-
-	return llvm_new(NULL , &struct_str[0] , NULL , strip_mut(get_type( litstruct ) ) );
+	reg[0] = '%';
+	itoa(var_count-1 , &reg[1] , 10);
+		
+	return llvm_new(NULL , &reg[0]  , NULL , strip_mut(get_type( litstruct ) ) );
 
 }
 
@@ -1381,6 +1437,8 @@ char* itoa(int val, char* usr_buff , int base){
 	
 }
 
+
+//I don't think this is used anymore
 char* llvm_type_str(struct type* type , char* buf){
 	int strt;
 	if(!type)return buf;

@@ -20,9 +20,12 @@ llvm_var* 		llvm_block(GNode*);
 llvm_var*		llvm_structdef(GNode*);
 
 //llvm_var*		llvm_let();
-llvm_var*		llvm_let_type();
-llvm_var*		llvm_let_ass();
-llvm_var*		llvm_let_type_ass();
+llvm_var*		llvm_let_type(GNode*);
+llvm_var*		llvm_let_ass(GNode*);
+llvm_var*		llvm_let_type_ass(GNode*);
+llvm_var*		llvm_ret(GNode*);
+llvm_var*		llvm_ret_exp(GNode*);
+
 
 //Left expressions: UNDER CONSTRUCTION
 llvm_var*		llvm_left_exp(GNode*);

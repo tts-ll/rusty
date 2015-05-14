@@ -21,7 +21,7 @@ fn main() {
 	let t1 : Point;
 	let t2 : i32;
 
-/*
+
 	while( n < 2 || n == 1 ){
 
 		loop{
@@ -48,9 +48,10 @@ fn main() {
   
 	foo( x[0][1] - 4*y , y , b );
 	
-	p.x = 4-1;
-	y = p.y + 1;	
-*/
+	P.x = 4-1;
+	y = P.y + 1;	
 
+
+	
 }
 
