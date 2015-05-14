@@ -3,6 +3,7 @@
 
 #include <glib.h>
 #include "env.h"
+#include "ast.h"
 
 enum {
 	TYPE_INVALID = 700,
@@ -63,17 +64,17 @@ struct type * type_annotate_struct_lit(GNode *, struct env *, GHashTable *);
 
 struct type* type_annotate_fncall(GNode* , struct env* global, GHashTable *);
 
-struct type* type_annotate_box_new(GNode* , struct env* global, GHashTable *);
+struct type * type_annotate_box_new(GNode* , struct env* global, GHashTable *);
 
 struct type * type_annotate_deref(GNode *, struct env * , GHashTable * );
 
 struct type * type_annotate_ref(GNode *, struct env * , GHashTable * );
 
-struct type* type_annotate_id(GNode* , struct env* , GHashTable* );
+struct type * type_annotate_id(GNode* , struct env* , GHashTable* );
 
 struct type * type_annotate_arr_index(GNode *, struct env *, GHashTable *);
 
-struct type* type_annotate_field_lookup(GNode *, struct env* , GHashTable *);
+struct type * type_annotate_field_lookup(GNode *, struct env* , GHashTable *);
 
 struct type * type_annotate_let_stmt(GNode *, struct env *, GHashTable *);
 
@@ -101,7 +102,7 @@ struct type * type_annotate_letstmt(GNode *, struct env *, GHashTable *);
 
 //Utility Section
 
-void free_ast_node(struct ast* );
+void free_ast_node(struct ast * );
 void free_ast(GNode* );
 void free_nary(GNode* );
 char* deepcopy(char*);

@@ -1,35 +1,77 @@
 #ifndef LLVM_H
 #define LLVM_H
 
-
-//Tyler's branch version
-
+#include "type_annotate.h"
 
 
-//Insert binary ops to llvm code
+typedef struct llvm_var{
 
-
-
-
+	struct type* type;		//The type of the variable
+	char* id;				//The corresponding rust variable
+	char* reg;				//The virtual  SSA (SingleSaticAssignment) register
+	char* label;			//The label/basic-block the var belongs to
+	
+} llvm_var;
 
 void test_llvm(GNode*);
 void llvm_constants(GNode*);
-char* llvm_crate(GNode*);
-char* llvm_maindef(GNode*);
-char* llvm_fndef(GNode*);
-char* llvm_block(GNode*);
-char* llvm_exp(GNode*);
-char* llvm_loop(GNode*);
-char* llvm_binary_op(GNode*);
-char* llvm_comparison(GNode*);
-char* llvm_id(GNode*);
-char* llvm_litdec(GNode*);
-char* llvm_printi(GNode*);
-char* llvm_prints(GNode*);
-char* itoa(int , char * , int);
+llvm_var* llvm_crate(GNode*);
+llvm_var* llvm_block(GNode*);
+llvm_var* llvm_structdef(GNode*);
+llvm_var* llvm_maindef(GNode*);
+llvm_var* llvm_fndef(GNode*);
+
+//llvm_var*		llvm_let();
+llvm_var*		llvm_let_type(GNode*);
+llvm_var*		llvm_let_ass(GNode*);
+llvm_var*		llvm_let_type_ass(GNode*);
+llvm_var*		llvm_ret(GNode*);
+llvm_var*		llvm_ret_exp(GNode*);
+
+//Left expressions: UNDER CONSTRUCTION
+llvm_var*		llvm_left_exp(GNode*);
+llvm_var*		llvm_left_arridx(GNode*);
+llvm_var*		llvm_left_deref(GNode*);
+llvm_var*		llvm_left_flup(GNode*);
+
+llvm_var* 		llvm_exp(GNode*);
+llvm_var*		llvm_exp_no_load(GNode*);
+llvm_var* 		llvm_loop(GNode*);
+llvm_var*		llvm_while(GNode*);
+llvm_var*		llvm_ifelse(GNode*);
+llvm_var* 		llvm_binary_op(GNode*);
+llvm_var* 		llvm_comparison(GNode*);
+llvm_var*		llvm_assign(GNode*);
+llvm_var*		llvm_arridx(GNode*);
+llvm_var*		llvm_deref(GNode*);
+llvm_var*		llvm_flup(GNode*);
+llvm_var*		llvm_fncall(GNode*);
 
 
+llvm_var* 		llvm_id(GNode*);
+llvm_var* 		llvm_litdec(GNode*);
+llvm_var*		llvm_litbool(GNode*);
+llvm_var*		llvm_litarr(GNode*);
+llvm_var*		llvm_litstruct(GNode*);
+
+llvm_var* llvm_printi(GNode*);
+llvm_var* llvm_prints(GNode*);
 
 
+//Get the offset of a field within a structure
+int 			llvm_field_offset( GNode* struct_def , char* field_id);
+
+
+//Print the type of a given llvm variable
+void			llvm_print_type(struct type*);
+
+//Fill and return a string filled with a string representation of the type
+char*			llvm_type_str(struct type* , char* );
+//Convert an integer into a character
+char* 			itoa(int num, char * buf, int radix);
+
+//Constructor/Destructor
+llvm_var* 		llvm_new( char* , char* , char* , struct type*);
+void 			llvm_free( llvm_var* );
 
 #endif /*LLVM_H*/

@@ -1,5 +1,12 @@
 fn main() {
 
+
+	if(true){
+		prints(b"true is true");
+	}
+	else{
+		prints(b"true is false");
+	};
 /*
 	1 + 2 * 4;
 	1 +4 / 2;
@@ -19,7 +26,7 @@ fn main() {
 	};
 	printi(3);
 */	
-//	printi(1);
+
 	b'h';
 	prints(b"hello world");
 
