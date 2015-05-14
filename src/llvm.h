@@ -59,6 +59,9 @@ int 			llvm_field_offset( GNode* struct_def , char* field_id);
 //Print the type of a given llvm variable
 void			llvm_print_type(struct type*);
 
+//Fill and return a string filled with a string representation of the type
+char*			llvm_type_str(struct type* , char* );
+
 //Convert an integer into a character
 char* 			itoa(int num, char * buf, int radix);
 

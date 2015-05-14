@@ -15,7 +15,7 @@ fn main() {
 	let y : i32 = 2;
 	let n : i32 = 20;
 	let b : bool = true;
-	
+	let P : Point = Point{x: 2 , y: 4};	
 	
 	let hello = x;
 	let t1 : Point;

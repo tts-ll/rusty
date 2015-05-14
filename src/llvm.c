@@ -377,6 +377,10 @@ llvm_var* llvm_exp(GNode *exp){
 		case ARRAY_LIT:
 			var = llvm_litarr( exp );		
 			break;
+		
+		case STRUCT_LIT:
+			var = llvm_litstruct( exp );
+			break;
 
 		default:
 			var = NULL;
@@ -479,7 +483,11 @@ llvm_var* llvm_exp_no_load(GNode *exp){
 		case ARRAY_LIT:
 			var = llvm_litarr( exp );
 			break;
-	
+		
+		case STRUCT_LIT:
+			var = llvm_litstruct( exp );
+			break;
+		
 		default:
 			var = NULL;
 	}
@@ -1273,6 +1281,50 @@ llvm_var* llvm_litarr(GNode* arr){
 
 }
 
+llvm_var* llvm_litstruct(GNode* litstruct){
+	
+	GNode* field = litstruct->children->next->children;	
+	GNode* exp = NULL;
+	GNode* save = field;
+	char struct_str[5000];
+	char type_str[500];
+	
+	
+	llvm_var* vars[1000];
+	int i = 0;
+
+	while(field){
+		exp = field->children->next;
+		
+		vars[i] = llvm_exp( exp );
+		
+		i++;
+		field = field->next;
+	}
+
+	field = save;
+	i = 0;
+
+	struct_str[0] = '{';
+	struct_str[1] = '\0';
+	while(field){
+		
+		strcat(&struct_str[0] , llvm_type_str( strip_mut(vars[i]->type ) , &type_str[0] )   );
+		strcat(&struct_str[0] , " ");
+		strcat( &struct_str[0] , vars[i]->reg );
+		
+
+		field = field->next;
+		if(field) strcat(&struct_str[0] , " , ");
+	}
+	
+	strcat(&struct_str[0] , "}" );
+
+	return llvm_new(NULL , &struct_str[0] , NULL , strip_mut(get_type( litstruct ) ) );
+
+}
+
+
 llvm_var* llvm_litdec(GNode *litdec){
 
 	int num = get_ast( litdec )->num;
@@ -1327,6 +1379,74 @@ char* itoa(int val, char* usr_buff , int base){
 
 	return usr_buff;
 	
+}
+
+char* llvm_type_str(struct type* type , char* buf){
+	int strt;
+	if(!type)return buf;
+
+	switch(type->kind){
+		case TYPE_INVALID:
+			sprintf(buf , "invalid" ); 
+			break;
+		case TYPE_OK:
+			sprintf(buf , "ok!");
+			break;
+		case TYPE_ERROR:
+			sprintf(buf , "ERROR!");		
+			break;		
+		case TYPE_UNIT:
+			sprintf(buf , "()");
+			break;		
+		case TYPE_I32:
+			sprintf(buf , "i32");
+			break;
+		case TYPE_U8:
+			sprintf(buf , "i8");
+			break;
+		case TYPE_BOOL:
+			sprintf(buf , "i1");
+			break;
+		case TYPE_ARRAY:
+ 			sprintf(buf , "[%d x " , type->length);
+			strt = strlen(buf);	
+			llvm_type_str( type->type, &buf[strt] );
+			strt = strlen(buf);
+			sprintf(&buf[strt] ,  "]");
+			break;
+		case TYPE_REF:
+			llvm_type_str(type->type , buf);
+			strt = strlen(buf);
+			sprintf(&buf[strt] ,  "]");
+			break;
+		case TYPE_SLICE:
+			sprintf(buf , "[");
+			llvm_type_str(type->type , &buf[1]);
+			strt = strlen(buf);
+			sprintf(&buf[strt] ,  "]");
+			break;
+ 		case TYPE_BOX:
+			llvm_type_str(type->type , buf);
+			strt = strlen(buf);
+			sprintf(&buf[strt] , "*");
+			break;
+		case TYPE_FN:
+			// TODO but i aint gonna
+			sprintf(buf , "fn (TODO) -> TODO");
+			break;
+		case TYPE_ID:
+			sprintf(buf , "%%struct.%s", type->id);
+			break;
+		case TYPE_MUT:
+			sprintf(buf , " MUT SHOULD BE STRIPPED!!!");
+			break;
+		default:
+			sprintf(buf , "HALT:  error in typing engine!\n");
+		
+	}
+
+	return buf;
+
 }
 
 void llvm_print_type( struct type* type ){
