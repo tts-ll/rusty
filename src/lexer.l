@@ -176,7 +176,7 @@
 			 }
 
 
-[\/][\/][ -~]*          { }
+\/\/[^\r\n]*	{ /* Eat up 1-line comments. */ }
 
 
 [ \n\r\t]+   { /* Eat up whitespace. */ 
