@@ -691,7 +691,7 @@ llvm_var* llvm_flup( GNode* flup ){
 	//Create a new SSA register value
 	char* new_reg = malloc( 33 * sizeof(char) );
 	new_reg[0] = '%';
-    itoa(var_count++ , &new_reg[1] , 10);	
+    	itoa(var_count++ , &new_reg[1] , 10);	
 	
 	
 	//Print new instruction	
@@ -780,7 +780,7 @@ llvm_var* llvm_left_flup( GNode* flup ){
 	//Create a new SSA register value
 	char* new_reg = malloc( 33 * sizeof(char) );
 	new_reg[0] = '%';
-    itoa(var_count++ , &new_reg[1] , 10);	
+      itoa(var_count++ , &new_reg[1] , 10);	
 	
 	
 	//Print new instruction	
@@ -816,7 +816,7 @@ int llvm_field_offset(GNode* struct_def, char* id){
 		#endif	
 	}
 	
-	GNode* field = struct_def->children->children;
+	GNode* field = struct_def->children->next->children;
 	
 	while(field){
 		
