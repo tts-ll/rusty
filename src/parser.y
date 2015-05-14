@@ -4,6 +4,7 @@
 	#include <glib.h>
 	#include "env.h"
 	#include "type_annotate.h"
+	#include "llvm.h"	
 
 	void yyerror(char const* msg);
 	int yylex(void);

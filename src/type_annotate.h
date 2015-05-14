@@ -3,6 +3,7 @@
 
 #include <glib.h>
 #include "env.h"
+#include "ast.h"
 
 enum {
 	TYPE_INVALID = 700,
@@ -97,7 +98,7 @@ struct type * type_annotate_letstmt(GNode *, struct env *, GHashTable *);
 
 //Utility Section
 
-void free_ast_node(struct ast* );
+void free_ast_node( struct ast* );
 void free_ast(GNode* );
 void free_nary(GNode* );
 char* deepcopy(char*);

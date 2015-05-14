@@ -16,7 +16,13 @@ typedef struct llvm_var{
 } llvm_var;
 
 void 			test_llvm(GNode*);
-llvm_var** 		llvm_block(GNode*);
+llvm_var* 		llvm_block(GNode*);
+llvm_var*		llvm_structdef(GNode*);
+
+//llvm_var*		llvm_let();
+llvm_var*		llvm_let_type();
+llvm_var*		llvm_let_ass();
+llvm_var*		llvm_let_type_ass();
 
 //Left expressions: UNDER CONSTRUCTION
 llvm_var*		llvm_left_exp(GNode*);
@@ -26,16 +32,28 @@ llvm_var*		llvm_left_flup(GNode*);
 
 
 llvm_var* 		llvm_exp(GNode*);
+llvm_var*		llvm_exp_no_load(GNode*);
 llvm_var* 		llvm_loop(GNode*);
+llvm_var*		llvm_while(GNode*);
+llvm_var*		llvm_ifelse(GNode*);
 llvm_var* 		llvm_binary_op(GNode*);
 llvm_var* 		llvm_comparison(GNode*);
 llvm_var*		llvm_assign(GNode*);
+llvm_var*		llvm_arridx(GNode*);
+llvm_var*		llvm_deref(GNode*);
+llvm_var*		llvm_flup(GNode*);
+llvm_var*		llvm_fncall(GNode*);
+
+
 llvm_var* 		llvm_id(GNode*);
 llvm_var* 		llvm_litdec(GNode*);
+llvm_var*		llvm_litbool(GNode*);
+llvm_var*		llvm_litarr(GNode*);
+llvm_var*		llvm_litstruct(GNode*);
 
 
 //Get the offset of a field within a structure
-int llvm_field_offset( GNode* struct_def , char* field_id);
+int 			llvm_field_offset( GNode* struct_def , char* field_id);
 
 
 //Print the type of a given llvm variable
