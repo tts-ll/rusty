@@ -115,7 +115,7 @@ void insert_type(struct env* env, GNode * node){
 		record->params = node;//shallow copy of the node! (will be used to get ctor hash table)
 
 	}
-	else{
+	else{			//Def->ID->fields->field
 		record->params = node->children->next->children;	
 	}
 	unsigned int qid = g_quark_from_string( id );	
